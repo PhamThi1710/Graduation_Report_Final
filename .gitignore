@@ -1,4 +1,4 @@
-# Tệp tạm thời và đầu ra của LaTeX
+
 *.aux
 *.log
 *.out
@@ -11,12 +11,9 @@
 *.run.xml
 *.bcf
 
-# Tệp hệ thống Windows (Zone.Identifier)
 *:Zone.Identifier
 
-# Nếu muốn giữ lại images nhưng loại bỏ tệp Zone.Identifier trong đó
 images/*:Zone.Identifier
 
-# Loại bỏ các tệp không cần thiết khác (nếu có)
 *.bak
 *.tmp
