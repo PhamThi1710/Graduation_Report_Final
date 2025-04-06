@@ -1,0 +1,133 @@
+\section{Giới thiệu}
+Hệ thống học tập thông minh được thiết kế để hỗ trợ học sinh trong việc lập kế hoạch học tập và đánh giá tiến độ một cách hiệu quả. Với sự tích hợp của AI, hệ thống có khả năng phân tích dữ liệu học tập, tạo lộ trình cá nhân hóa và đưa ra các đánh giá chi tiết. Báo cáo này tập trung vào các chức năng chính như sinh ra lộ trình học tập, đánh giá kết quả học tập, và các tính năng bổ sung khác.
+
+\section{Sinh ra lộ trình học tập}
+Chức năng này chịu trách nhiệm tạo ra một lộ trình học tập cá nhân hóa dựa trên mục tiêu học tập của học sinh, nội dung khóa học và thời gian khả dụng. Quá trình được thực hiện qua ba giai đoạn chính:
+
+\begin{enumerate}
+    \item \textbf{Phân tích mục tiêu và thời gian}: Hàm \texttt{analyze\_goal\_and\_timeline} kiểm tra tính hợp lệ của mục tiêu (ví dụ: độ dài, tính liên quan) và xác định thời gian khả thi dựa trên ngày bắt đầu và kết thúc khóa học. Ví dụ mã nguồn:
+    \begin{lstlisting}[language=Python]
+async def analyze_goal_and_timeline(goal: str, course_start_date: datetime, ...):
+    if len(goal) < 10:
+        raise ApplicationException(message="Goal is too short...")
+    prompt = f"..."
+    response = chunking_manager.call_llm_api(prompt, ...)
+    \end{lstlisting}
+
+    \item \textbf{Lựa chọn bài học liên quan}: Hàm \texttt{select\_relevant\_lessons} lọc các bài học phù hợp với mục tiêu, sắp xếp theo thứ tự logic và điều chỉnh theo thời gian. AI được sử dụng để ưu tiên các bài học nền tảng nếu thời gian ngắn.
+
+    \item \textbf{Tạo lộ trình chi tiết}: Hàm \texttt{generate\_detailed\_learning\_path} xây dựng lộ trình đầy đủ, bao gồm các bài học được đề xuất và phân bổ thời gian cụ thể. Kết quả được lưu vào cơ sở dữ liệu qua endpoint \texttt{/generate-learning-path}.
+\end{enumerate}
+
+Kết quả là một JSON chứa thông tin chi tiết về lộ trình, ví dụ:
+\begin{lstlisting}[language=JSON]
+{
+    "learning_path_start_date": "2025-04-06",
+    "recommend_lessons": [{"lesson_id": "123", "order": 1, ...}]
+}
+\end{lstlisting}
+
+\section{Đánh giá kết quả học tập}
+Chức năng này bao gồm hai phần phụ: theo dõi quá trình học tập và phân tích kết quả cuối cùng.
+
+\subsection{Đánh giá quá trình học tập (Progress Tracking Assessment)}
+Phần này sử dụng endpoint \texttt{/student/\{courseId\}/assessment} để đánh giá tiến độ học tập dựa trên phương pháp STAR (Situation, Task, Action, Result). Các bước thực hiện:
+\begin{itemize}
+    \item \textbf{Tạo prompt chuẩn}: Hàm \texttt{generate\_standard\_prompt} sinh ra một prompt chi tiết gửi đến AI, yêu cầu đánh giá dựa trên các tiêu chí: kiến thức lý thuyết, kỹ năng thực hành (hoặc kỹ năng thay thế), và sự nỗ lực.
+    \item \textbf{Phân tích dữ liệu}: AI sử dụng dữ liệu bài học (progress, time\_spent) để đưa ra đánh giá theo Rubric chuẩn, với các mức: Excellent, Good, Average, Poor.
+    \item \textbf{Kết quả đầu ra}: Một JSON chứa thông tin đánh giá, ví dụ:
+    \begin{lstlisting}[language=JSON]
+{
+    "student_assessment": {
+        "assessment_summary": {
+            "situation": "Nguyen Van A is taking a Python course...",
+            "action": {"theoretical_knowledge": "...", "coding_skills": "...", "effort": "..."},
+            "result": "With 75\% progress as of 2025-03-31, Nguyen Van A is on track..."
+        },
+        "progress_review": {"strengths": "...", "areas_to_note": "..."}
+    }
+}
+    \end{lstlisting}
+\end{itemize}
+
+\subsection{Đánh giá kết thúc học tập (Analysis Results)}
+Phần này sử dụng hàm \texttt{analyze\_issues} để phân tích kết quả cuối cùng sau khi học sinh hoàn thành một bài học được đề xuất. Các bước:
+\begin{itemize}
+    \item \textbf{Phân tích vấn đề}: Dựa trên \texttt{issues\_summary} từ cơ sở dữ liệu, AI xác định các vấn đề quan trọng (significant\_issues) và mức độ nghiêm trọng (severity).
+    \item \textbf{Đề xuất hành động}: Đưa ra một hoặc hai khuyến nghị (proceed, repeat, review\_prior), ví dụ:
+    \begin{lstlisting}[language=JSON]
+{
+    "can_proceed": false,
+    "needs_repeat": true,
+    "recommendations": [
+        {"action": "repeat", "reason": "Significant difficulties with recursion...", "details": "Review 'Advanced Recursion'"}
+    ]
+}
+    \end{lstlisting}
+    \item \textbf{Cập nhật tiến độ}: Nếu cần lặp lại, hệ thống có thể tái tạo nội dung bài học qua \texttt{regenerate\_lesson\_content}.
+\end{itemize}
+
+\section{Các chức năng khác}
+
+\subsection{Tạo câu hỏi trắc nghiệm (Generate Quiz)}
+Chức năng này cho phép hệ thống tạo bài kiểm tra trắc nghiệm dựa trên nội dung của một bài học được đề xuất, sử dụng endpoint \texttt{/generate-quiz}. Các bước thực hiện:
+\begin{itemize}
+    \item \textbf{Tập hợp dữ liệu}: Hệ thống lấy thông tin từ bài học (lesson), nội dung được đề xuất (recommended content), và tài liệu liên quan (documents).
+    \item \textbf{Tạo câu hỏi}: AI sinh ra các câu hỏi với ba mức độ khó (easy, medium, hard) theo phân phối được yêu cầu, sử dụng mô hình Gemini. Ví dụ mã nguồn:
+    \begin{lstlisting}[language=Python]
+async def generate_quiz(request: GenerateQuizRequest, ...):
+    prompt = f"Generate EXACTLY {questions_needed} {difficulty_name} difficulty questions..."
+    response = llm.invoke(prompt)
+    \end{lstlisting}
+    \item \textbf{Lưu trữ}: Câu hỏi và bài kiểm tra được lưu vào cơ sở dữ liệu với thông tin như thời gian giới hạn và điểm tối đa.
+\end{itemize}
+Kết quả là một JSON chứa bài kiểm tra, ví dụ:
+\begin{lstlisting}[language=JSON]
+{
+    "quiz_id": "abc123",
+    "name": "Quiz: Python Basics",
+    "questions": [{"question_text": "What is a list?", "difficulty": "easy", "points": 5, ...}]
+}
+\end{lstlisting}
+
+\subsection{Theo dõi thời gian học tập (Track Study Time)}
+Chức năng này theo dõi và cập nhật thời gian học tập của học sinh cho từng bài học được đề xuất, sử dụng endpoint \texttt{/student/recommend\_lessons/\{recommend\_lesson\_id\}/time\_spent}. Các bước:
+\begin{itemize}
+    \item \textbf{Cập nhật thời gian}: Hàm \texttt{add\_time\_spent} nhận thời gian mới (định dạng HH:MM:SS) và cộng dồn vào thời gian hiện có.
+    \begin{lstlisting}[language=Python]
+def add_time_spent(existing_time_spent, new_time_spent_str):
+    new_time_delta = parse_time_spent(new_time_spent_str)
+    return existing_time_spent + new_time_delta
+    \end{lstlisting}
+    \item \textbf{Lưu trữ}: Thời gian được cập nhật vào cơ sở dữ liệu qua \texttt{recommend\_lesson\_controller}.
+    \item \textbf{Kết quả}: Trả về thời gian đã cập nhật, ví dụ:
+    \begin{lstlisting}[language=JSON]
+{
+    "recommend_lesson_id": "xyz789",
+    "updated_time_spent": "02:30:45"
+}
+\end{lstlisting}
+\end{itemize}
+
+\subsection{Tái tạo nội dung bài học (Regenerate Lesson Content)}
+Chức năng này điều chỉnh nội dung bài học dựa trên các vấn đề học sinh gặp phải, sử dụng endpoint \texttt{/regenerate-lesson-content/\{recommend\_lesson\_id\}}. Các bước:
+\begin{itemize}
+    \item \textbf{Phân tích vấn đề}: Dựa trên \texttt{issues\_summary}, hệ thống xác định các khía cạnh cần cải thiện (ví dụ: hiểu sai khái niệm, lỗi mã).
+    \item \textbf{Tạo nội dung mới}: AI sinh nội dung cập nhật với các mô-đun chi tiết, ví dụ mã nguồn:
+    \begin{lstlisting}[language=Python]
+async def regenerate_lesson_content(recommend_lesson_id: UUID, issues_summary: dict, ...):
+    prompt = f"Generate updated content targeting issues..."
+    updated_content = chunking_manager.call_llm_api(prompt, ...)
+    \end{lstlisting}
+    \item \textbf{Cập nhật}: Nội dung mới được lưu vào cơ sở dữ liệu và đánh dấu trạng thái "new".
+\end{itemize}
+Kết quả là một JSON chứa nội dung mới, ví dụ:
+\begin{lstlisting}[language=JSON]
+{
+    "recommended_content": "Updated content targeting recursion issues...",
+    "modules": [{"title": "Recursion Basics", "objectives": [...], ...}]
+}
+\end{lstlisting}
+
+\section{Kết luận}
+Hệ thống học tập thông minh cung cấp các công cụ mạnh mẽ để cá nhân hóa lộ trình học tập, đánh giá tiến độ, và hỗ trợ học sinh qua các tính năng như tạo bài kiểm tra, theo dõi thời gian, và tái tạo nội dung. Các chức năng này đảm bảo học sinh đạt mục tiêu đúng hạn, đồng thời xác định điểm mạnh, điểm yếu và định hướng cải thiện. Trong tương lai, hệ thống có thể mở rộng với các tính năng như phân tích dữ liệu học tập sâu hơn hoặc tích hợp công cụ học tập tương tác.
