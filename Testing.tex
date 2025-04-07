@@ -1,0 +1,38 @@
+\section{Các API cần kiểm thử}
+\subsection{Đăng nhập và Xác thực}
+\begin{itemize}
+    \item \textbf{API đăng nhập} (Role: Sinh viên, Giảng viên, Quản trị viên): Đây là API quan trọng nhất trong mọi hệ thống, cần kiểm tra khả năng đăng nhập qua email/mật khẩu và Google.
+    \item \textbf{Làm mới token xác thực} (Role: Sinh viên, Giảng viên, Quản trị viên): Kiểm tra khả năng gia hạn phiên làm việc và làm mới token xác thực sau khi hết hạn.
+\end{itemize}
+
+\subsection{Quản lý khóa học}
+\begin{itemize}
+    \item \textbf{Xem danh sách khóa học} (Role: Sinh viên, Giảng viên): API này kiểm tra việc hiển thị danh sách khóa học có phân trang và tìm kiếm. Đây là API thường xuyên được sử dụng.
+    \item \textbf{Tạo khóa học mới} (Role: Quản trị viên): API này cho phép tạo khóa học mới và kiểm tra tính đúng đắn trong việc lưu trữ thông tin khóa học.
+    \item \textbf{Cập nhật thông tin khóa học} (Role: Quản trị viên): Kiểm tra việc chỉnh sửa các thông tin của khóa học như tên, tín chỉ, học kỳ.
+\end{itemize}
+
+\subsection{Quản lý bài học}
+\begin{itemize}
+    \item \textbf{Tạo bài học mới} (Role: Giảng viên): API tạo bài học mới giúp đảm bảo rằng giảng viên có thể thêm nội dung bài học vào khóa học một cách dễ dàng.
+    \item \textbf{Cập nhật bài học} (Role: Giảng viên): Kiểm tra khả năng chỉnh sửa thông tin bài học (tiêu đề, mô tả, mục tiêu học tập).
+\end{itemize}
+
+\subsection{Quản lý bài tập}
+\begin{itemize}
+    \item \textbf{Xem danh sách bài tập} (Role: Sinh viên): API này kiểm tra việc hiển thị danh sách bài tập (quiz/lập trình) trong khóa học, giúp sinh viên nắm được những bài tập cần hoàn thành.
+    \item \textbf{Tạo bài tập mới} (Role: Giảng viên): API này kiểm tra khả năng tạo bài tập mới, bao gồm bài quiz và bài tập lập trình.
+    \item \textbf{Nộp bài tập} (Role: Sinh viên): Kiểm tra API nộp bài quiz và khả năng xóa câu trả lời để làm lại.
+\end{itemize}
+
+\subsection{Quản lý phản hồi}
+\begin{itemize}
+    \item \textbf{Gửi phản hồi về khóa học hoặc hệ thống} (Role: Sinh viên, Giảng viên): Đây là một tính năng quan trọng giúp người dùng gửi ý kiến phản hồi về khóa học hoặc hệ thống. Cần kiểm tra khả năng gửi và lưu trữ phản hồi.
+    \item \textbf{Xem và quản lý phản hồi} (Role: Quản trị viên): API này kiểm tra khả năng quản lý và lọc phản hồi để đảm bảo quản trị viên có thể xử lý và theo dõi phản hồi hiệu quả.
+\end{itemize}
+
+\subsection{Quản lý người dùng}
+\begin{itemize}
+    \item \textbf{Tạo người dùng mới} (Role: Quản trị viên): API này cho phép tạo người dùng mới với các vai trò khác nhau. Đây là một API quan trọng để kiểm tra quy trình tạo người dùng trong hệ thống.
+    \item \textbf{Xem danh sách người dùng} (Role: Quản trị viên): API này giúp quản trị viên xem tất cả người dùng, lọc theo vai trò và trạng thái. Đây là tính năng thiết yếu trong việc quản lý người dùng.
+\end{itemize}
